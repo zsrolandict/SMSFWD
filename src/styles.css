@@ -6,3 +6,5 @@
 
 .is-native .flow-art{display:none}.is-native .hero-grid{display:block;padding-top:28px;padding-bottom:30px}.is-native .hero h1{font-size:36px;margin:16px 0}.is-native .hero-copy>p{font-size:12px}.is-native .hero-note{margin-top:16px}.is-native .workspace{padding-top:24px}
 .email-form{padding:18px 24px;border-top:1px solid #edf1f3}.email-security{font-size:11px;line-height:1.8;color:#7890a0}.email-form a{color:#008ca6}.email-settings>.form-error{margin:12px 24px}.is-native .header{padding-top:env(safe-area-inset-top);height:calc(70px + env(safe-area-inset-top))}@media(max-width:760px){.email-form{padding:18px}.email-settings .setting-row{flex-wrap:wrap}.email-settings .setting-row p{font-size:11px}.is-native .hero{display:none}.is-native .workspace{padding-top:24px}}
+
+.simple-dashboard{grid-template-columns:1fr}.password-input{position:relative;display:flex}.password-input input{padding-right:48px}.password-input button{position:absolute;right:6px;top:6px;bottom:6px;display:grid;place-items:center;width:34px;border-radius:4px;background:none;color:#5d7c91}.password-input button:hover{background:#e8f2f5}

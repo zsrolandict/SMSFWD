@@ -2,6 +2,19 @@ package hu.smsfwd.app;
 import org.junit.Test;
 import static org.junit.Assert.*;
 public class RuleMatcherTest {
+    @Test public void screenshotPatternsMatchAndOtherMessagesDoNot() {
+        String terms="egyszer használatos jelszava\nInfoCert";
+        assertTrue(RuleMatcher.matchesKeywords(terms,"any","Az Ön egyszer használatos jelszava: 00000000"));
+        assertTrue(RuleMatcher.matchesKeywords(terms,"any","OTP: 00000000 Codice di verifica InfoCert generato alle ore: 10:00:00"));
+        assertFalse(RuleMatcher.matchesKeywords(terms,"any","Szia, találkozunk holnap?"));
+    }
+    @Test public void wordsAndAllConditionsWork() {
+        assertFalse(RuleMatcher.matchesKeywords("OTP","any","NOTP"));
+        assertTrue(RuleMatcher.matchesKeywords("OTP","any","OTP: 00000000"));
+        assertFalse(RuleMatcher.matchesKeywords("OTP\nInfoCert","all","OTP: 00000000"));
+        assertTrue(RuleMatcher.matchesKeywords("OTP\nInfoCert","all","otp: 00000000 INFOCERT"));
+        assertTrue(RuleMatcher.matchesKeywords("egyszer használatos","any","egyszer\n használatos"));
+    }
     @Test public void internationalNumbersNormalize() { assertEquals("+36301234567", RuleMatcher.normalize("0036 (30) 123-4567")); }
     @Test public void senderAndKeywordAreBothRequired() {
         assertTrue(RuleMatcher.matches("specific", "+36 30 1234567", "munka", "0036301234567", "MUNKA megérkezett"));

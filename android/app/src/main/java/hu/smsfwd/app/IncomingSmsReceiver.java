@@ -56,7 +56,8 @@ public class IncomingSmsReceiver extends BroadcastReceiver {
                     JSONObject rule = rules.optJSONObject(i);
                     if (rule == null || !rule.optBoolean("enabled") || rule.optBoolean("sample")) continue;
                     String keyword = rule.optString("keyword");
-                    if (!RuleMatcher.matches(rule.optString("senderType"), rule.optString("sender"), keyword, sender, body)) continue;
+                    if (!RuleMatcher.matches(rule.optString("senderType"), rule.optString("sender"), rule.has("keywords") ? "" : keyword, sender, body)) continue;
+                    if(rule.has("keywords") && !RuleMatcher.matchesKeywords(rule.optString("keywords"),rule.optString("keywordMode","any"),body))continue;
                     String channel = rule.optString("channel"), target = rule.optString("target").trim();
                     if (channel.equals("sms")) target = normalize(target);
                     if (!destinations.add(channel + ":" + target)) continue;

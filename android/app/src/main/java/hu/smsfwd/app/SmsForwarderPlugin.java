@@ -10,11 +10,30 @@ import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 import com.getcapacitor.annotation.Permission;
 import com.getcapacitor.annotation.PermissionCallback;
+import com.getcapacitor.annotation.ActivityCallback;
+import androidx.activity.result.ActivityResult;
 
 @CapacitorPlugin(name = "SmsForwarder", permissions = {
     @Permission(alias = "sms", strings = { Manifest.permission.RECEIVE_SMS, Manifest.permission.SEND_SMS })
 })
 public class SmsForwarderPlugin extends Plugin {
+    @PluginMethod public void revealEmailPassword(PluginCall call) {
+        android.app.KeyguardManager manager=getContext().getSystemService(android.app.KeyguardManager.class);
+        if(manager!=null && manager.isDeviceSecure()) {
+            android.content.Intent intent=manager.createConfirmDeviceCredentialIntent("SMSFWD", "A mentett alkalmazásjelszó megjelenítése");
+            if(intent==null){call.reject("Nem érhető el a telefon feloldási ellenőrzése.");return;}
+            startActivityForResult(call,intent,"passwordAuthenticated");
+        }else revealPassword(call);
+    }
+    @ActivityCallback private void passwordAuthenticated(PluginCall call,ActivityResult result) {
+        if(call==null)return;
+        if(result.getResultCode()!=android.app.Activity.RESULT_OK){call.reject("A jelszó megjelenítését megszakítottad.");return;}
+        revealPassword(call);
+    }
+    private void revealPassword(PluginCall call) {
+        try{EmailConfig config=EmailCredentials.load(getContext());if(config==null){call.reject("Nincs mentett postafiók.");return;}JSObject result=new JSObject();result.put("password",config.password);call.resolve(result);}
+        catch(Exception e){call.reject("A mentett jelszó nem olvasható. Add meg újra.");}
+    }
     @PluginMethod public void configure(PluginCall call) {
         JSArray rules = call.getArray("rules", new JSArray());
         int limit = call.getInt("dailyLimit", 20);

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+async function openTest(page) { await page.getByRole('button', { name: 'Beállítások', exact: true }).first().click(); await page.getByRole('button', { name: 'Szabály próba', exact: true }).click(); }
 
 test('email settings explain the sender and do not store a password in the browser', async ({ page }) => {
   await page.goto('/');
@@ -7,23 +8,49 @@ test('email settings explain the sender and do not store a password in the brows
   await expect(page.getByRole('textbox', { name: 'SMTP-kiszolgáló' })).toHaveValue('smtp.gmail.com');
   await page.getByRole('textbox', { name: 'Küldő e-mail címe' }).fill('sender@example.com');
   await page.getByLabel('Alkalmazásjelszó', { exact: true }).fill('synthetic-test-only');
+  await expect(page.getByLabel('Alkalmazásjelszó', { exact: true })).toHaveAttribute('type', 'password');
+  await page.getByRole('button', { name: 'Jelszó megjelenítése' }).click();
+  await expect(page.getByLabel('Alkalmazásjelszó', { exact: true })).toHaveAttribute('type', 'text');
+  await page.getByRole('button', { name: 'Jelszó elrejtése' }).click();
   await page.getByRole('button', { name: 'Postafiók mentése' }).click();
   await expect(page.getByRole('alert')).toContainText('Android-alkalmazásban');
   expect(await page.evaluate(() => JSON.stringify(localStorage))).not.toContain('synthetic-test-only');
 });
+test('multiple recipients and keyword presets survive editing', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByRole('button', { name: 'Próbáld ki' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Tesztüzenet indítása' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Új szabály', exact: true }).first().click();
+  await page.getByRole('textbox', { name: 'Szabály neve' }).fill('Kódértesítések');
+  await page.getByRole('button', { name: 'Jelszavas SMS-ek mintája' }).click();
+  await page.getByRole('button', { name: 'Telefonszámra', exact: true }).click();
+  await page.getByRole('textbox', { name: 'Címzett telefonszáma' }).fill('+36301112233\n+36302223344');
+  await page.getByRole('button', { name: 'Szabály mentése' }).click();
+  await expect(page.getByRole('button', { name: /Kódértesítések.*2 címzett/ })).toBeVisible();
+  await page.getByRole('button', { name: 'Kódértesítések szerkesztése' }).click();
+  await expect(page.getByRole('textbox', { name: 'Címzett telefonszáma' })).toHaveValue('+36301112233\n+36302223344');
+  await page.keyboard.press('Escape');
+  await openTest(page);
+  await page.getByRole('textbox', { name: 'Üzenet szövege' }).fill('Az Ön egyszer használatos jelszava: 00000000');
+  await page.getByRole('button', { name: 'Teszt indítása', exact: true }).click();
+  await expect(page.getByText('2 célra továbbítaná az alkalmazás.')).toBeVisible();
+  await page.getByRole('textbox', { name: 'Üzenet szövege' }).fill('Szia, találkozunk holnap?');
+  await page.getByRole('button', { name: 'Teszt indítása', exact: true }).click();
+  await expect(page.getByText('Egyetlen szabály sem illeszkedik.')).toBeVisible();
+});
 
 test('a saved rule persists and a matching simulation shows the destination', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: 'Új szabály létrehozása' }).click();
+  await page.getByRole('button', { name: 'Új szabály', exact: true }).first().click();
   await page.getByRole('textbox', { name: 'Szabály neve' }).fill('Csomagértesítés');
-  await page.getByRole('textbox', { name: 'Kulcsszó' }).fill('csomag');
+  await page.getByRole('textbox', { name: 'Kulcsszavak' }).fill('csomag');
   await page.getByRole('textbox', { name: 'Címzett e-mail címe' }).fill('teszt@example.com');
   await page.getByRole('button', { name: 'Szabály mentése' }).click();
   await expect(page.getByRole('button', { name: /Csomagértesítés MINTA/ })).toHaveCount(0);
   await expect(page.getByText('Csomagértesítés', { exact: true })).toBeVisible();
   await page.reload();
   await expect(page.getByText('Csomagértesítés', { exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'Próbáld ki' }).click();
+  await openTest(page);
   await page.getByRole('button', { name: 'Teszt indítása', exact: true }).click();
   await expect(page.getByRole('dialog').getByText('teszt@example.com', { exact: true })).toBeVisible();
   await expect(page.getByText('2 célra továbbítaná az alkalmazás.')).toBeVisible();
@@ -36,13 +63,14 @@ test('a saved rule persists and a matching simulation shows the destination', as
 test('pause blocks simulation and disabling a rule excludes it', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('switch', { name: 'Továbbítás bekapcsolása', exact: true }).click();
-  await page.getByRole('button', { name: 'Próbáld ki' }).click();
+  await openTest(page);
   await page.getByRole('button', { name: 'Teszt indítása', exact: true }).click();
   await expect(page.getByRole('dialog').getByText('A továbbítás szünetel.', { exact: true })).toBeVisible();
   await page.keyboard.press('Escape');
   await page.getByRole('switch', { name: 'Továbbítás bekapcsolása', exact: true }).click();
+  await page.getByRole('button', { name: 'Áttekintés', exact: true }).first().click();
   await page.getByRole('switch', { name: 'Munkahelyi üzenetek szabály bekapcsolása' }).click();
-  await page.getByRole('button', { name: 'Próbáld ki' }).click();
+  await openTest(page);
   await page.getByRole('button', { name: 'Teszt indítása', exact: true }).click();
   await expect(page.getByText('Egyetlen szabály sem illeszkedik.')).toBeVisible();
 });
@@ -59,7 +87,7 @@ test('a rule can be edited and deleted with confirmation', async ({ page }) => {
 });
 test('invalid phone cannot be saved and SMS input is accepted in international format', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: 'Új szabály létrehozása' }).click();
+  await page.getByRole('button', { name: 'Új szabály', exact: true }).first().click();
   await page.getByRole('textbox', { name: 'Szabály neve' }).fill('Telefon');
   await page.getByRole('button', { name: 'Telefonszámra', exact: true }).click();
   await page.getByRole('textbox', { name: 'Címzett telefonszáma' }).fill('123');
@@ -83,7 +111,7 @@ test('mobile layout has no horizontal overflow and mobile navigation works', asy
 });
 test('history clear keeps the forwarding rules', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: 'Próbáld ki' }).click();
+  await openTest(page);
   await page.getByRole('button', { name: 'Teszt indítása', exact: true }).click();
   await page.keyboard.press('Escape');
   await page.getByRole('button', { name: 'Előzmények', exact: true }).first().click();
