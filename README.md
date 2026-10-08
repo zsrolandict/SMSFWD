@@ -31,6 +31,8 @@ Production build: `npm run build`. A `dist/` statikus webszerverrel kiszolgálha
 
 ### Letöltés a GitHubról
 
+Az első, a felhőkörnyezetben buildelt és aláírás-ellenőrzött debug APK közvetlenül is elérhető: [SMSFWD 0.1 APK](downloads/SMSFWD-0.1-debug.apk). A GitHub fájlnézetben a **Download raw file** gombbal tölthető le. Ez a bemutatóhoz biztosított egyszeri bináris; a további buildek a GitHub Actions artifactjaiban készülnek. Az e-mail-integráció és a fizikai telefonos ellenőrzés továbbra is hiányzik. Az APK SHA-256 ellenőrzőösszege a `downloads/SHA256SUMS` fájlban található.
+
 A `.github/workflows/android-apk.yml` a `main` ág feltöltése után APK-t buildel. A GitHub-tároló **Actions → Android APK letoltes** részében egy sikeres futás alján, az **Artifacts** szakaszban a **SMSFWD-Android** csomag tölthető le, GitHub-bejelentkezés után. A ZIP-ből az `app-debug.apk` fájlt kell kicsomagolni, majd Androidon telepíteni. Az artifact 14 napig marad meg; a munkafolyamat kézzel újraindítható. A `SMSFWD-bemutato` csomag külön tartalmazza a megnyitható bemutatót.
 
 A CI debug aláírókulcs a futtatókörnyezethez tartozik és változhat: későbbi CI-build ezért nem feltétlenül telepíthető ugyanarra az alkalmazásra frissítésként. Ilyenkor eltávolítás szükséges lehet, ami törli a helyi szabályokat. Stabil frissítéshez megőrzött release kulcs kell.
