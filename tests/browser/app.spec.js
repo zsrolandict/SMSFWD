@@ -1,0 +1,83 @@
+import { test, expect } from '@playwright/test';
+
+test('a saved rule persists and a matching simulation shows the destination', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Új szabály létrehozása' }).click();
+  await page.getByRole('textbox', { name: 'Szabály neve' }).fill('Csomagértesítés');
+  await page.getByRole('textbox', { name: 'Kulcsszó' }).fill('csomag');
+  await page.getByRole('textbox', { name: 'Címzett e-mail címe' }).fill('teszt@example.com');
+  await page.getByRole('button', { name: 'Szabály mentése' }).click();
+  await expect(page.getByRole('button', { name: /Csomagértesítés MINTA/ })).toHaveCount(0);
+  await expect(page.getByText('Csomagértesítés', { exact: true })).toBeVisible();
+  await page.reload();
+  await expect(page.getByText('Csomagértesítés', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Próbáld ki' }).click();
+  await page.getByRole('button', { name: 'Teszt indítása', exact: true }).click();
+  await expect(page.getByRole('dialog').getByText('teszt@example.com', { exact: true })).toBeVisible();
+  await expect(page.getByText('2 célra továbbítaná az alkalmazás.')).toBeVisible();
+  await page.getByRole('button', { name: 'Bezárás', exact: true }).last().click();
+  await page.getByRole('button', { name: 'Előzmények', exact: true }).first().click();
+  await expect(page.getByText('Teszt sikeres')).toHaveCount(2);
+  await page.getByRole('textbox', { name: 'Keresés az előzményekben' }).fill('teszt@example.com');
+  await expect(page.getByText('Teszt sikeres')).toHaveCount(1);
+});
+test('pause blocks simulation and disabling a rule excludes it', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('switch', { name: 'Továbbítás bekapcsolása', exact: true }).click();
+  await page.getByRole('button', { name: 'Próbáld ki' }).click();
+  await page.getByRole('button', { name: 'Teszt indítása', exact: true }).click();
+  await expect(page.getByRole('dialog').getByText('A továbbítás szünetel.', { exact: true })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await page.getByRole('switch', { name: 'Továbbítás bekapcsolása', exact: true }).click();
+  await page.getByRole('switch', { name: 'Munkahelyi üzenetek szabály bekapcsolása' }).click();
+  await page.getByRole('button', { name: 'Próbáld ki' }).click();
+  await page.getByRole('button', { name: 'Teszt indítása', exact: true }).click();
+  await expect(page.getByText('Egyetlen szabály sem illeszkedik.')).toBeVisible();
+});
+test('a rule can be edited and deleted with confirmation', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Munkahelyi üzenetek szerkesztése' }).click();
+  await page.getByRole('textbox', { name: 'Szabály neve' }).fill('Iroda');
+  await page.getByRole('button', { name: 'Szabály mentése' }).click();
+  await expect(page.getByText('Iroda', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Iroda szerkesztése' }).click();
+  await page.getByRole('button', { name: 'Törlés', exact: true }).click();
+  await page.getByRole('button', { name: 'Szabály törlése' }).click();
+  await expect(page.getByText('Iroda', { exact: true })).toHaveCount(0);
+});
+test('invalid phone cannot be saved and SMS input is accepted in international format', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Új szabály létrehozása' }).click();
+  await page.getByRole('textbox', { name: 'Szabály neve' }).fill('Telefon');
+  await page.getByRole('button', { name: 'Telefonszámra', exact: true }).click();
+  await page.getByRole('textbox', { name: 'Címzett telefonszáma' }).fill('123');
+  await page.getByRole('button', { name: 'Szabály mentése' }).click();
+  await expect(page.getByRole('alert')).toContainText('országkóddal');
+  await page.getByRole('textbox', { name: 'Címzett telefonszáma' }).fill('+36301112233');
+  await page.getByRole('button', { name: 'Szabály mentése' }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.getByText('Telefon', { exact: true })).toBeVisible();
+});
+test('mobile layout has no horizontal overflow and mobile navigation works', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.getByRole('navigation', { name: 'Mobilmenü' }).getByRole('button', { name: 'Beállítások' }).click();
+  await expect(page.getByRole('heading', { name: 'Eszköz és működés' })).toBeVisible();
+  await page.getByRole('spinbutton', { name: 'Napi SMS szegmenslimit' }).fill('35');
+  await page.reload();
+  await page.getByRole('navigation', { name: 'Mobilmenü' }).getByRole('button', { name: 'Beállítások' }).click();
+  await expect(page.getByRole('spinbutton', { name: 'Napi SMS szegmenslimit' })).toHaveValue('35');
+});
+test('history clear keeps the forwarding rules', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Próbáld ki' }).click();
+  await page.getByRole('button', { name: 'Teszt indítása', exact: true }).click();
+  await page.keyboard.press('Escape');
+  await page.getByRole('button', { name: 'Előzmények', exact: true }).first().click();
+  await page.getByRole('button', { name: 'Törlés', exact: true }).click();
+  await page.getByRole('button', { name: 'Előzmények törlése' }).click();
+  await expect(page.getByText('Nincs megjeleníthető esemény')).toBeVisible();
+  await page.getByRole('button', { name: 'Szabályok', exact: true }).first().click();
+  await expect(page.getByRole('button', { name: 'Munkahelyi üzenetek szerkesztése' })).toBeVisible();
+});

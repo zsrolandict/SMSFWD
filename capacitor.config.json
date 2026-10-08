@@ -1,0 +1,6 @@
+{
+  "appId": "hu.smsfwd.app",
+  "appName": "SMSFWD",
+  "webDir": "dist",
+  "android": { "backgroundColor": "#f2f7f8" }
+}
