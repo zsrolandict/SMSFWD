@@ -1,6 +1,6 @@
 # Fejlesztési terv és ellenőrzések
 
-> Az első futtatható 0.1-es verzió képességei, parancsai és korlátai a README-ben találhatók. A következő táblázat az eredeti célterv; az e-mail-integráció, a tartós újrapróbálási várólista és a fizikai készülékes pilot még nincs kész. A korábbi üres checkout állapot a tervezéskor készült felmérés, nem a jelenlegi tárolóállapot.
+> Az első futtatható 0.2-es verzió képességei, parancsai és korlátai a README-ben találhatók. A következő táblázat az eredeti célterv; a Gmail/SMTP-küldés és WorkManager-várólista elkészült; az Outlook OAuth-integráció és a fizikai készülékes e-mail-pilot még nincs kész. A korábbi üres checkout állapot a tervezéskor készült felmérés, nem a jelenlegi tárolóállapot.
 
 ## Megvalósítási sorrend
 

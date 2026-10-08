@@ -62,8 +62,10 @@ public class IncomingSmsReceiver extends BroadcastReceiver {
                     if (!destinations.add(channel + ":" + target)) continue;
                     JSONObject record = new JSONObject().put("id", UUID.randomUUID().toString()).put("sender", sender).put("body", body).put("target", target).put("channel", channel).put("ruleName", rule.optString("name")).put("at", Instant.now().toString()).put("simulated", false).put("started", System.currentTimeMillis());
                     if (channel.equals("email")) {
-                        record.put("status", "blocked").put("error", "A céges e-mail-küldés még nincs csatlakoztatva.");
-                        SmsStore.add(context, record); continue;
+                        boolean configured=EmailCredentials.metadata(context).optBoolean("configured");
+                        record.put("status",configured ? "pending" : "blocked").put("error",configured ? "" : "Állítsd be a küldő postafiókot a Beállításokban.");
+                        if(SmsStore.add(context,record) && configured)EmailWorker.enqueue(context,record.getString("id"));
+                        continue;
                     }
                     if (!target.matches("\\+[1-9]\\d{7,14}") || target.equals(normalize(sender))) {
                         record.put("status", "blocked").put("error", "Érvénytelen cél vagy visszaküldés a feladónak."); SmsStore.add(context, record); continue;

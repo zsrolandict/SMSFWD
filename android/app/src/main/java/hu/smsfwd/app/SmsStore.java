@@ -28,7 +28,7 @@ final class SmsStore {
         JSONArray old = allHistory(context), next = new JSONArray(); next.put(item);
         for (int i = 0; i < old.length(); i++) {
             JSONObject entry = old.optJSONObject(i);
-            if (entry != null && (i < 199 || entry.optString("status").equals("in_flight"))) next.put(entry);
+            if (entry != null && (i < 199 || entry.optString("status").equals("in_flight") || entry.optString("status").equals("pending"))) next.put(entry);
         }
         return persist(context, next);
     }
@@ -36,22 +36,25 @@ final class SmsStore {
         JSONArray old = allHistory(context), next = new JSONArray();
         for (int i = 0; i < old.length(); i++) {
             JSONObject entry = old.optJSONObject(i);
-            if (entry != null && entry.optString("status").equals("in_flight")) {
+            if (entry != null && (entry.optString("status").equals("in_flight") || entry.optString("status").equals("pending"))) {
                 try { entry.put("hidden", true); next.put(entry); } catch (Exception ignored) {}
             }
         }
         persist(context, next);
     }
     static synchronized boolean persist(Context context, JSONArray list) { return preferences(context).edit().putString("history", list.toString()).commit(); }
-    static synchronized void setState(Context context, String id, String status, String error) {
+    static synchronized JSONObject find(Context context,String id) {
+        JSONArray all=allHistory(context);for(int i=0;i<all.length();i++){JSONObject item=all.optJSONObject(i);if(item!=null && item.optString("id").equals(id))return item;}return null;
+    }
+    static synchronized boolean setState(Context context, String id, String status, String error) {
         JSONArray all = allHistory(context);
         for (int i = 0; i < all.length(); i++) {
             JSONObject entry = all.optJSONObject(i);
             if (entry != null && entry.optString("id").equals(id)) {
-                try { entry.put("status", status).put("error", error); } catch (Exception ignored) {}
+                try { entry.put("status", status).put("error", error); if(status.equals("in_flight"))entry.put("started",System.currentTimeMillis()); } catch (Exception ignored) {}
             }
         }
-        persist(context, all);
+        return persist(context, all);
     }
     static synchronized void sentResult(Context context, String id, int part, int result) {
         JSONArray all = allHistory(context);

@@ -1,6 +1,6 @@
 # Technikai terv
 
-> 0.1-es megvalósítás: React + Capacitor kezelőfelület, Java Android SMS-adapter és SharedPreferences-tárolás. A következő Kotlin/Compose, Room és WorkManager architektúra az eredeti terv, nem a jelen build leírása. A futtatható verzió képességeit és korlátait a README rögzíti.
+> 0.2-es megvalósítás: React + Capacitor kezelőfelület, Java Android SMS/SMTP-adapter, SharedPreferences-tárolás, Keystore és WorkManager e-mail-várólista. A következő Kotlin/Compose, Room és WorkManager architektúra az eredeti terv, nem a jelen build leírása. A futtatható verzió képességeit és korlátait a README rögzíti.
 
 ## Alapok
 

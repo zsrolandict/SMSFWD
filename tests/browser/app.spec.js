@@ -1,5 +1,17 @@
 import { test, expect } from '@playwright/test';
 
+test('email settings explain the sender and do not store a password in the browser', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Beállítások', exact: true }).first().click();
+  await page.getByRole('button', { name: 'Postafiók beállítása' }).click();
+  await expect(page.getByRole('textbox', { name: 'SMTP-kiszolgáló' })).toHaveValue('smtp.gmail.com');
+  await page.getByRole('textbox', { name: 'Küldő e-mail címe' }).fill('sender@example.com');
+  await page.getByLabel('Alkalmazásjelszó', { exact: true }).fill('synthetic-test-only');
+  await page.getByRole('button', { name: 'Postafiók mentése' }).click();
+  await expect(page.getByRole('alert')).toContainText('Android-alkalmazásban');
+  expect(await page.evaluate(() => JSON.stringify(localStorage))).not.toContain('synthetic-test-only');
+});
+
 test('a saved rule persists and a matching simulation shows the destination', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Új szabály létrehozása' }).click();
