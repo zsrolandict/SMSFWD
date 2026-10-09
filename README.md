@@ -18,6 +18,17 @@ A **böngészős nézet kizárólag szimuláció**: nem küld valódi üzenetet.
 
 ## Böngészős futtatás
 
+### 0.3.2 fejlesztői változat
+
+[SMSFWD 0.3.2 APK letöltése](https://github.com/zsrolandict/SMSFWD/raw/refs/heads/smsfwd-0.3.2-20261009/downloads/SMSFWD-0.3.2-debug.apk). A már telepített új 0.3.1 fölé frissíthető, eltávolítás nélkül.
+
+- Külön SMS-fogadási és SMS-küldési engedély. Az e-mailre továbbításhoz csak a fogadás szükséges.
+- Közvetlen **Alkalmazásengedélyek megnyitása** gomb és tartalommentes **Hibakeresés** nézet az Android-engedélyek ellenőrzéséhez.
+- Az automatikus e-mail mellett **ⓘ Gmail beállítási útmutató**, lépésekkel és alkalmazásjelszó-linkkel.
+- **Gmail összekapcsolása**: Google-fiókválasztás és Gmail API-küldés. A Google Cloud projekt regisztrációja előfeltétel; a jelen kiadás felhős tesztjei nem igazolnak élő Google-bejelentkezést vagy valódi Gmail-küldést. A [Google Cloud beállítási útmutató](docs/google-cloud-beallitas.md) tartalmazza a lépéseket és az aktuális APK tanúsítványadatait. Az SMTP-beállítás megmarad alternatívaként.
+- A kézzel indított próba-e-mail SMS-engedély és bekapcsolt automatikus továbbítás nélkül is elküldhető.
+- A 0.3.2 ugyanazzal a fejlesztői kulccsal készül, mint az új felhős 0.3.1 APK; arra eltávolítás nélkül frissíthető. A régi 0.3 közvetlen APK eltérő aláírású.
+
 ### 0.3.1 fejlesztői változat
 
 - Szabály másolása: nyisd meg a szabályt, majd válaszd a **Szabály másolása** gombot. A mezők előre kitöltve maradnak, a név „– másolat” utótagot kap. Módosítsd a kívánt mezőt, majd mentsd el. A másolat külön szabály; az eredeti változatlan marad. A másolat a forrás bekapcsolt/kikapcsolt állapotát is átveszi, és mentés előtt nem kerül a szabályok közé.
@@ -62,7 +73,7 @@ Telefonon: telepítsd az APK-t, nyisd meg, engedélyezd az SMS-hozzáférést, m
 
 ## Jelenlegi korlátok
 
-- Az automatikus e-mailhez küldő SMTP-postafiókot kell beállítani. Gmailhez alkalmazásjelszó szükséges; Microsoft 365 OAuth-bejelentkezés még nincs. A mentés nem igazolja a belépést: valódi próba-e-maillel ellenőrizendő.
+- Az automatikus e-mailhez küldő SMTP-postafiókot kell beállítani. Gmailhez alkalmazásjelszó vagy a 0.3.2-ben Google-kapcsolat használható; utóbbihoz előbb alkalmazásregisztráció szükséges. Microsoft 365 OAuth-bejelentkezés még nincs. A mentés nem igazolja a belépést: valódi próba-e-maillel ellenőrizendő.
 - A kimenő SIM a telefon alapértelmezett SMS-SIM-je; külön alkalmazásbeli SIM-választás még nincs.
 - A tárolás szinkronizált SharedPreferences; az e-mail várólistát WorkManager feldolgozza internetkapcsolat esetén. Blokkolt e-mail a beállítás javítása után az Előzményekből kézzel újraküldhető. Bizonytalan SMTP-kimenetel nem ismétlődik automatikusan.
 - Nincs régi SMS-import, MMS/RCS vagy automatikus szövegátfogalmazás.
@@ -108,4 +119,4 @@ A Beállítások → Szabály próba továbbra is szimuláció. A postafiók be�
 - „Jelszavas SMS-ek mintája”: `egyszer használatos jelszava` és `InfoCert`, bármelyik illeszkedéssel. Az üzenetben lévő változó számot nem kell beírni. A gomb csak a szűrőt tölti ki; címzettet nem állít be, és önmagában nem indít küldést.
 - Egy szabály csatornája SMS vagy e-mail; ha egyszerre mindkettőre kell küldeni, két szabályt hozz létre azonos szövegfeltételekkel.
 
-A Gmail-fiók egyszerű összekapcsolásához szükséges Google-regisztráció részletei: [Gmail-összekapcsolás](docs/gmail-osszekotes.md). Ez az integráció még nincs kész; a meglévő Gmail-bejelentkezés önmagában nem helyettesíti az SMSFWD számára szükséges engedélyt.
+A Gmail-fiók egyszerű összekapcsolásához szükséges Google-regisztráció részletei: [Gmail-összekapcsolás](docs/gmail-osszekotes.md). A 0.3.2 tartalmazza a Google-kapcsolatot, de a Google Cloud regisztráció és élő telefonos ellenőrzés még szükséges. A meglévő Gmail-bejelentkezés önmagában nem helyettesíti az SMSFWD számára szükséges engedélyt.

@@ -13,17 +13,20 @@ public class EmailWorker extends Worker {
     @NonNull @Override public Result doWork() {
         Context context=getApplicationContext();String id=getInputData().getString("id");JSONObject item=SmsStore.find(context,id);
         if(item==null || !item.optString("status").equals("pending"))return Result.success();
-        if(!SmsStore.preferences(context).getBoolean("active",false))return Result.retry();
-        EmailConfig config;
-        try{config=EmailCredentials.load(context);}
-        catch(Exception e){SmsStore.setState(context,id,"blocked","A mentett postafiók nem olvasható. Állítsd be újra.");return Result.success();}
-        if(config==null){SmsStore.setState(context,id,"blocked","Állítsd be a küldő postafiókot a Beállításokban.");return Result.success();}
+        if(!item.optBoolean("testEmail",false) && !SmsStore.preferences(context).getBoolean("active",false))return Result.retry();
+        MailAccounts.PreparedSender sender;
+        try{sender=MailAccounts.prepare(context);}
+        catch(MailAccounts.BlockedException e){SmsStore.setState(context,id,"blocked",e.getMessage());return Result.success();}
+        // Authorization can take time; respect a pause selected while it was running.
+        if(!item.optBoolean("testEmail",false) && !SmsStore.preferences(context).getBoolean("active",false))return Result.retry();
         if(!SmsStore.setState(context,id,"in_flight",""))return Result.failure();
         try {
-            MailTransport.send(config,item.getString("target"),"SMS érkezett: "+item.optString("sender"),"Feladó: "+item.optString("sender")+"\nÉrkezett (UTC): "+item.optString("at")+"\n\n"+item.optString("body"));
+            sender.send(item.getString("target"),"SMS érkezett: "+item.optString("sender"),"Feladó: "+item.optString("sender")+"\nÉrkezett (UTC): "+item.optString("at")+"\n\n"+item.optString("body"));
             SmsStore.setState(context,id,"sent","");
         } catch(javax.mail.AuthenticationFailedException e) {
             SmsStore.setState(context,id,"blocked","A postafiók nem fogadta el a belépést. Gmailhez alkalmazásjelszó kell; ellenőrizd a küldő címet és a fiók beállításait.");
+        } catch(GmailTransport.RejectedException e) {
+            SmsStore.setState(context,id,"blocked",e.getMessage());
         } catch(Exception e) {
             // SMTP acceptance after a disconnect can be uncertain: never blindly resend.
             SmsStore.setState(context,id,"unknown","Az e-mail elküldése nem igazolható ("+e.getClass().getSimpleName()+"). Ellenőrizd a postafiókot és a hálózatot; újraküldés duplikációt okozhat.");

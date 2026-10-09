@@ -34,6 +34,7 @@ public class IncomingSmsReceiver extends BroadcastReceiver {
         synchronized (SmsStore.class) {
             SharedPreferences prefs = SmsStore.preferences(context);
             if (!prefs.getBoolean("active", false)) return;
+            if (context.checkSelfPermission(Manifest.permission.RECEIVE_SMS) != PackageManager.PERMISSION_GRANTED) return;
             try {
                 SmsMessage[] messages = Telephony.Sms.Intents.getMessagesFromIntent(intent);
                 if (messages == null || messages.length == 0) return;
@@ -63,7 +64,7 @@ public class IncomingSmsReceiver extends BroadcastReceiver {
                     if (!destinations.add(channel + ":" + target)) continue;
                     JSONObject record = new JSONObject().put("id", UUID.randomUUID().toString()).put("sender", sender).put("body", body).put("target", target).put("channel", channel).put("ruleName", rule.optString("name")).put("at", Instant.now().toString()).put("simulated", false).put("started", System.currentTimeMillis());
                     if (channel.equals("email")) {
-                        boolean configured=EmailCredentials.metadata(context).optBoolean("configured");
+                        boolean configured=MailAccounts.isConfigured(context);
                         record.put("status",configured ? "pending" : "blocked").put("error",configured ? "" : "Állítsd be a küldő postafiókot a Beállításokban.");
                         if(SmsStore.add(context,record) && configured)EmailWorker.enqueue(context,record.getString("id"));
                         continue;
