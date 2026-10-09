@@ -1,4 +1,37 @@
 import { test, expect } from '@playwright/test';
+for (const width of [390, 1366]) {
+  test(`copying a rule preserves settings and leaves the original unchanged at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('/');
+    const original = { id: 'original', name: 'Banki kódok', senderType: 'specific', sender: 'BANK', keyword: '', keywords: 'OTP\nInfoCert', keywordMode: 'all', channel: 'email', targets: ['first@example.com', 'second@example.com'], target: 'first@example.com', enabled: false, sample: false };
+    await page.evaluate(rule => localStorage.setItem('smsfwd.rules', JSON.stringify([rule])), original);
+    await page.reload();
+    await page.getByRole('button', { name: /^Banki kódok „/ }).click();
+    await page.getByRole('button', { name: 'Szabály másolása', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Új továbbítási szabály' })).toBeVisible();
+    await expect(page.getByRole('textbox', { name: 'Szabály neve' })).toHaveValue('Banki kódok – másolat');
+    await expect(page.getByRole('textbox', { name: 'Feladó száma vagy neve' })).toHaveValue('BANK');
+    await expect(page.getByRole('textbox', { name: 'Kulcsszavak' })).toHaveValue('OTP\nInfoCert');
+    await expect(page.getByLabel('Szövegfeltétel')).toHaveValue('all');
+    await expect(page.getByRole('textbox', { name: 'Címzett e-mail címe' })).toHaveValue('first@example.com\nsecond@example.com');
+    expect(await page.evaluate(() => JSON.parse(localStorage.getItem('smsfwd.rules')))).toEqual([original]);
+    await page.getByRole('button', { name: 'Mégse', exact: true }).click();
+    expect(await page.evaluate(() => JSON.parse(localStorage.getItem('smsfwd.rules')))).toEqual([original]);
+    await page.getByRole('button', { name: /^Banki kódok „/ }).click();
+    await page.getByRole('button', { name: 'Szabály másolása', exact: true }).click();
+    await page.getByRole('textbox', { name: 'Címzett e-mail címe' }).fill('third@example.com');
+    await page.getByRole('button', { name: 'Szabály mentése' }).click();
+    await page.reload();
+    const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('smsfwd.rules')));
+    expect(stored).toHaveLength(2);
+    expect(stored[0]).toEqual(original);
+    expect(stored[1].id).not.toBe(original.id);
+    expect(stored[1]).toMatchObject({ name: 'Banki kódok – másolat', sender: 'BANK', keywords: 'OTP\nInfoCert', keywordMode: 'all', enabled: false, sample: false, target: 'third@example.com', targets: ['third@example.com'] });
+    await page.getByRole('button', { name: /^Banki kódok – másolat „/ }).click();
+    await expect(page.getByRole('textbox', { name: 'Címzett e-mail címe' })).toHaveValue('third@example.com');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  });
+}
 async function openTest(page) { await page.getByRole('button', { name: 'Beállítások', exact: true }).first().click(); await page.getByRole('button', { name: 'Szabály próba', exact: true }).click(); }
 
 test('email settings explain the sender and do not store a password in the browser', async ({ page }) => {

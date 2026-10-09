@@ -2,6 +2,15 @@ package hu.smsfwd.app;
 import org.junit.Test;
 import static org.junit.Assert.*;
 public class RuleMatcherTest {
+    @Test public void unicodeSpacesAndLiteralPunctuationMatch() {
+        assertTrue(RuleMatcher.matchesKeywords("egyszer használatos", "any", "egyszer\u00a0\u202fhasználatos"));
+        assertTrue(RuleMatcher.matchesKeywords("\u00a0InfoCert\u00a0", "any", "INFOCERT"));
+        assertTrue(RuleMatcher.matchesKeywords("OTP", "any", "OTP\u0085érkezett"));
+        assertTrue(RuleMatcher.matchesKeywords("kód (új)", "any", "A kód (új): 1234"));
+        assertFalse(RuleMatcher.matchesKeywords("kód (új)", "any", "A kód új: 1234"));
+        assertTrue(RuleMatcher.matchesKeywords("", "any", "Tetszőleges SMS"));
+        assertTrue(RuleMatcher.matchesKeywords("\u00a0\n\t", "all", "Tetszőleges SMS"));
+    }
     @Test public void screenshotPatternsMatchAndOtherMessagesDoNot() {
         String terms="egyszer használatos jelszava\nInfoCert";
         assertTrue(RuleMatcher.matchesKeywords(terms,"any","Az Ön egyszer használatos jelszava: 00000000"));

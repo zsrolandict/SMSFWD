@@ -18,6 +18,13 @@ A **böngészős nézet kizárólag szimuláció**: nem küld valódi üzenetet.
 
 ## Böngészős futtatás
 
+### 0.3.1 fejlesztői változat
+
+- Szabály másolása: nyisd meg a szabályt, majd válaszd a **Szabály másolása** gombot. A mezők előre kitöltve maradnak, a név „– másolat” utótagot kap. Módosítsd a kívánt mezőt, majd mentsd el. A másolat külön szabály; az eredeti változatlan marad. A másolat a forrás bekapcsolt/kikapcsolt állapotát is átveszi, és mentés előtt nem kerül a szabályok közé.
+- Android: a kulcsszószűrés már nem használja az Androidon nem támogatott `(?U)` regexjelölést, amely SMS-feldolgozáskor `PatternSyntaxException` hibát okozott. A Unicode-szóközök kezelése megmarad.
+
+A `downloads/` mappában található 0.3-as APK még a korábbi kiadás. Az új felhőbuild eltérő debug aláírókulcsot használ, ezért arra közvetlen frissítésként nem telepíthető. Adatmegőrző frissítéshez az eredeti aláírókulcs szükséges; az alkalmazás eltávolítása törli a helyi szabályokat és postafiók-beállításokat.
+
 Node.js 22+ szükséges.
 
 ```sh
